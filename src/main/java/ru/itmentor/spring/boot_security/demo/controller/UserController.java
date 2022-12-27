@@ -1,27 +1,26 @@
 package ru.itmentor.spring.boot_security.demo.controller;
 
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import ru.itmentor.spring.boot_security.demo.model.User;
-import ru.itmentor.spring.boot_security.demo.service.UserServiceImpl;
+import ru.itmentor.spring.boot_security.demo.service.UserService;
 
 import java.security.Principal;
 
 @Controller
 @RequestMapping("/user")
 public class UserController {
-    private final UserServiceImpl userService;
 
-    public UserController(UserServiceImpl userService) {
+    private final UserService userService;
+
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 
     @GetMapping("")
-    public String index(Principal principal, Model model) {
-        User user1 = userService.findByUsername(principal.getName());
-        model.addAttribute("user", user1);
+    public String getUser(Principal principal, ModelMap model) {
+        model.addAttribute("user", userService.getUserByName(principal.getName()));
         return "user";
     }
 }

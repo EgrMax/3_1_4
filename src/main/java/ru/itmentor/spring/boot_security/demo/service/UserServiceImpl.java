@@ -1,77 +1,71 @@
 package ru.itmentor.spring.boot_security.demo.service;
 
 
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.itmentor.spring.boot_security.demo.model.Role;
+import ru.itmentor.spring.boot_security.demo.configs.MyPasswordEncoder;
 import ru.itmentor.spring.boot_security.demo.model.User;
-import ru.itmentor.spring.boot_security.demo.repository.RoleRepository;
 import ru.itmentor.spring.boot_security.demo.repository.UserRepository;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService, UserDetailsService {
 
-    private final RoleRepository roleRepository;
-
     private final UserRepository userRepository;
+    private final MyPasswordEncoder myPasswordEncoder;
 
-    public UserServiceImpl(RoleRepository roleRepository, UserRepository userRepository) {
-        this.roleRepository = roleRepository;
+
+    public UserServiceImpl(UserRepository userRepository, MyPasswordEncoder myPasswordEncoder) {
         this.userRepository = userRepository;
+        this.myPasswordEncoder = myPasswordEncoder;
+
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = findByUsername(username);
-        if (user == null) {
-            throw new UsernameNotFoundException("user not found");
+    @Transactional
+    public User addUser(User user) {
+        User findUser = userRepository.findByUsername(user.getUsername());
+        if (findUser != null) {
+            return findUser;
         }
-        return userRepository.findByUsername(username);
-    }
-
-    private Collection<? extends GrantedAuthority> mapRolesToAuthorities(Collection<Role> roles) {
-
-        return roles.stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList());
-    }
-
-    public User findByUsername(String username) {
-        return userRepository.findByUsername(username);
-    }
-    @Transactional
-    @Override
-    public void addUser(User user) {
+        user.setPassword(myPasswordEncoder.getPasswordEncoder().encode(user.getPassword()));
         userRepository.save(user);
+        return user;
     }
 
-    @Override
-    public List<User> getAll() {
-        return userRepository.findAll();
+    public User getUser(long id) {
+        return userRepository.findById(id).get();
     }
+
+    @SuppressWarnings("unchecked")
+    public User getUserByName(String username) {
+        return userRepository.findByUsername(username);
+    }
+
     @Transactional
-    @Override
     public void deleteUser(long id) {
         userRepository.deleteById(id);
     }
 
-    @Override
-    public User getById(long id) {
-        return userRepository.getById(id);
+    @Transactional
+    public User editUser(User user) {
+        if (userRepository.findById(user.getId()) != null) {
+            user.setPassword(myPasswordEncoder.getPasswordEncoder().encode(user.getPassword()));
+            return userRepository.save(user);
+        }
+        return user;
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 
     @Override
-    public List<Role> roleList() {
-        return roleRepository.findAll();
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findByUsername(username);
     }
 }
-
-

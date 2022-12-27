@@ -1,19 +1,21 @@
 package ru.itmentor.spring.boot_security.demo.service;
 
-import ru.itmentor.spring.boot_security.demo.model.Role;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import ru.itmentor.spring.boot_security.demo.model.User;
 
 import java.util.List;
 
-public interface UserService {
 
-    void addUser(User user);
+public interface UserService extends UserDetailsService {
+    User addUser(User user);
 
-    List<User> getAll();
+    User getUser(long id);
+
+    User getUserByName(String username);
 
     void deleteUser(long id);
 
-    User getById(long id);
+    User editUser(User user);
 
-    List<Role> roleList();
+    List<User> getAllUsers();
 }

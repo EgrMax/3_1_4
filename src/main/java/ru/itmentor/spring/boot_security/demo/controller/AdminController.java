@@ -3,71 +3,49 @@ package ru.itmentor.spring.boot_security.demo.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import ru.itmentor.spring.boot_security.demo.model.Role;
 import ru.itmentor.spring.boot_security.demo.model.User;
+import ru.itmentor.spring.boot_security.demo.service.RoleService;
 import ru.itmentor.spring.boot_security.demo.service.UserService;
 
-import javax.validation.Valid;
-import java.util.List;
+import java.security.Principal;
+
 
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
-
     private final UserService userService;
+    private final RoleService roleService;
 
-
-    public AdminController(UserService userService) {
+    public AdminController(UserService userService, RoleService roleService) {
         this.userService = userService;
+        this.roleService = roleService;
+
     }
 
-    @GetMapping()
-    public String index(Model model) {
-        List<User> userList = userService.getAll();
-        model.addAttribute("users", userList);
-        return "all_users";
-    }
-
-    @GetMapping("/new")
-    public String newUser(Model model) {
-        List<Role> roleList = userService.roleList();
-        model.addAttribute("user", new User());
-        model.addAttribute("roleList", roleList);
-        return "new";
+    @GetMapping("")
+    public String getUsers(Principal principal, Model model) {
+        model.addAttribute(this.userService.getUserByName(principal.getName()));
+        model.addAttribute("usersList", this.userService.getAllUsers());
+        model.addAttribute("roleList", this.roleService.getAllRoles());
+        return "admin";
     }
 
     @PostMapping("/new")
-    public String create(@ModelAttribute("user") @Valid User user, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return "new";
-        }
-        userService.addUser(user);
+    public String createUser(@ModelAttribute("user") User user) {
+        this.userService.addUser(user);
         return "redirect:/admin";
     }
 
-    @GetMapping("/{id}/edit")
-    public String edit(Model model, @PathVariable("id") long id) {
-        User user = userService.getById(id);
-        List<Role> roleList = userService.roleList();
-        model.addAttribute("user", user);
-        model.addAttribute("roleList", roleList);
-        return "edit";
-    }
-
-    @PatchMapping("/{id}")
-    public String update(@ModelAttribute("user") @Valid User user, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return "edit";
-        }
-        userService.addUser(user);
+    @PutMapping("/update")
+    public String updateUser(@ModelAttribute("user") User user) {
+        this.userService.editUser(user);
         return "redirect:/admin";
     }
 
-    @DeleteMapping("/{id}/delete")
-    public String delete(@ModelAttribute("user") User user) {
-        userService.deleteUser(user.getId());
+    @DeleteMapping("/delete/{id}")
+    public String deleteUser(@PathVariable("id") long id) {
+        this.userService.deleteUser(id);
         return "redirect:/admin";
     }
 }
