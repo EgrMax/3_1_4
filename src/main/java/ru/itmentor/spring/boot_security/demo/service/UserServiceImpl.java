@@ -46,8 +46,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Transactional
-    public void deleteUser(long id) {
+    public Boolean deleteUser(long id) {
         userRepository.deleteById(id);
+        return null;
     }
 
     @Transactional

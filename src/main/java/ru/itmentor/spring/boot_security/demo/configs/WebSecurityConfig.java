@@ -27,9 +27,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf().disable()
                 .httpBasic().and()
                 .authorizeRequests()
-                .antMatchers("/user", "/api/user")
+                .antMatchers("/user")
                 .hasAnyRole("USER", "ADMIN")
-                .antMatchers("/admin/**", "/api/**")
+                .antMatchers("/app/**")
                 .hasRole("ADMIN")
                 .anyRequest().authenticated()
                 .and()
@@ -44,5 +44,4 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userService).passwordEncoder(myPasswordEncoder.getPasswordEncoder());
     }
-
 }
